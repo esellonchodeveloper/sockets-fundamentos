@@ -4,13 +4,25 @@ const ticketControl = new TicketControl();
 io.on('connection', (client) => {
     client.on('siguienteTicket', (data, callback) => {
         let siguienteTicket = ticketControl.siguiente();
-        console.log(siguienteTicket);
         callback(siguienteTicket);
     });
     // Emitir un evento 'estadoActual'
-    // return { actual: ticketControl.obtenerUltimoTicket() }
     client.emit('estadoActual', {
-        actual: ticketControl.obtenerUltimoTicket()
+        actual: ticketControl.obtenerUltimoTicket(),
+        ultimosCuatro: ticketControl.obtenerUltimosCuatro()
     });
-
+    client.on('atenderTicket', (data, callback) => {
+        if (!data.escritorio) {
+            return callback({
+                err: true,
+                message: 'El escritorio es necesario'
+            });
+        }
+        let escritorio = data.escritorio;
+        let atenderTicket = ticketControl.atenderTicket(escritorio);
+        callback(atenderTicket);
+        client.broadcast.emit('ultimosCuatro', {
+            ultimosCuatro: ticketControl.obtenerUltimosCuatro()
+        });
+    });
 });
